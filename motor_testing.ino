@@ -1,3 +1,5 @@
+#include <PID_v1.h>
+
 const int enA = 9;
 const int in1 = 4;
 const int in2 = 5;
@@ -14,7 +16,12 @@ int dataIndex = 0;
 String inString = "";
 
 volatile int ticksA = 0;
-volatile int c1aPrevVal = 0;
+volatile double rotationA = 0;
+
+double Setpoint, Input, Output;
+
+double Kp=30, Ki=0, Kd=0;
+PID pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 void setup() {
   pinMode(enA, OUTPUT);
@@ -26,12 +33,17 @@ void setup() {
   pinMode(in3, OUTPUT);
   pinMode(in4, OUTPUT);
 
-  attachInterrupt(digitalPinToInterrupt(c1a), updateEncoderA, CHANGE);
+  pinMode(LED_BUILTIN, OUTPUT);
 
-  c1aPrevVal = digitalRead(c1a);
+  attachInterrupt(digitalPinToInterrupt(c1a), updateEncoderA, CHANGE);
 
   Serial.begin(9600);
   Serial.println("<Arduino program starting...>");
+
+  Input = rotationA;
+  Setpoint = 0;
+  pid.SetMode(AUTOMATIC);
+  pid.SetOutputLimits(-40, 40);
 }
 
 void loop() {
@@ -43,7 +55,14 @@ void loop() {
     newData = false;
   }
   // Serial.println(String(digitalRead(c1a)) + ", " + String(digitalRead(c2a)));
-  Serial.println(ticksA / 100.0);
+  Serial.print(String(rotationA) + ", ");
+
+  if (percentOuts[0] == 100) {
+    Input = rotationA;
+    pid.Compute();
+    setA(Output);
+  }
+  Serial.println(Output);
 }
 
 void setA(double percentOut) {
@@ -92,14 +111,14 @@ double readPercentOut() {
 
 void updateEncoderA() {
   int c1aVal = digitalRead(c1a);
-  if (c1aVal == 1 && c1aVal != c1aPrevVal) {
-    if (c1aVal == digitalRead(c2a)) {
-      // CCW
-      ticksA += 1;
-    } else {
-      // CW
-      ticksA -= 1;
-    }
+  if (c1aVal == digitalRead(c2a)) {
+    // CCW
+    ticksA += 1;
+    digitalWrite(LED_BUILTIN, HIGH);
+  } else {
+    // CW
+    ticksA -= 1;
+    digitalWrite(LED_BUILTIN, LOW);
   }
-  c1aPrevVal = c1aVal;
+  rotationA = ticksA / 100.0;
 }
