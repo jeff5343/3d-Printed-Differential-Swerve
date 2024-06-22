@@ -1,134 +1,144 @@
 #include <PID_v1.h>
 
-const int enA = 9;
-const int in1 = 4;
-const int in2 = 5;
-const int c1a = 2;
-const int c2a = 3;
-
-const int enB = 10;
-const int in3 = 6;
-const int in4 = 7;
-
-double percentOuts[] = { 0, 0 };
 bool newData = false;
 int dataIndex = 0;
 String inString = "";
 
 bool pidMode = false;
 
-volatile int ticksA = 0;
-volatile double rotationA = 0;
-volatile bool updatedA = false;
+struct Motor {
+  // pins
+  const int en, in1, in2, c1, c2;
+  // input
+  double input;
+  // data
+  volatile bool isUpdated;
+  volatile int ticks;
+  volatile double rotation, rps;
+  unsigned long lastRpsUpdateMicros;
+  double lastRotation;
+  // pid
+  double pidSetpoint, pidInput, pidOutput;
+  const double kP, kI, kD, kS, kV;
+  PID pid;
+};
 
-double rpsA = 0;
-unsigned long lastMicrosA;
-double lastRotationA = 0;
+Motor motorA = Motor{
+  // pins
+  9, 4, 5, 2, 11,
+  // input
+  0,
+  // data
+  false, 0, 0, 0, 0, 0,
+  // pid
+  0, 0, 0,
+  1, 0, 0,                           // kP, kI, kD
+  12, 1.5,                           // Ks, Kv
+  PID(NULL, NULL, NULL, 0, 0, 0, 0)  // PID created later
+};
 
-// PID
-double Setpoint, Input, Output;
-double Kp = 1, Ki = 0, Kd = 0;
-PID pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
-// feedforward
-double Ks = 12, Kv = 1.5;
+Motor motorB = Motor{
+  // pins
+  10, 6, 7, 3, 12,
+  //input
+  0,
+  // data
+  false, 0, 0, 0, 0, 0,
+  // pid
+  0, 0, 0,
+  0, 0, 0,  // kP, kI, kD
+  0, 0,     // Ks, Kv
+  PID(NULL, NULL, NULL, 0, 0, 0, 0)
+};
+
+Motor motors[2] = { motorA, motorB };
 
 void setup() {
-  pinMode(enA, OUTPUT);
-  pinMode(in1, OUTPUT);
-  pinMode(in2, OUTPUT);
-  pinMode(c1a, INPUT);
-  pinMode(c2a, INPUT);
-  pinMode(enB, OUTPUT);
-  pinMode(in3, OUTPUT);
-  pinMode(in4, OUTPUT);
-
   pinMode(LED_BUILTIN, OUTPUT);
 
-  attachInterrupt(digitalPinToInterrupt(c1a), updateEncoderA, CHANGE);
+  for (int i = 0; i < 2; i++) {
+    pinMode(motors[i].en, OUTPUT);
+    pinMode(motors[i].in1, OUTPUT);
+    pinMode(motors[i].in2, OUTPUT);
+    pinMode(motors[i].c1, INPUT);
+    pinMode(motors[i].c2, INPUT);
+    attachInterrupt(digitalPinToInterrupt(motors[i].c1), i == 0 ? updateMotorARotation : updateMotorBRotation, CHANGE);
 
-  lastMicrosA = micros();
-
-  Input = rpsA;
-  Setpoint = 0;
-  pid.SetMode(AUTOMATIC);
-  pid.SetOutputLimits(-40, 40);
+    motors[i].lastRpsUpdateMicros = micros();
+    motors[i].pid = PID(
+      &motors[i].pidInput, &motors[i].pidOutput, &motors[i].pidSetpoint,
+      motors[i].kP, motors[i].kI, motors[i].kD, DIRECT);
+    motors[i].pid.SetMode(AUTOMATIC);
+    motors[i].pid.SetOutputLimits(-100, 100);
+  }
 
   Serial.begin(9600);
   Serial.println("<Arduino program starting...>");
 }
 
 void loop() {
-  readPercentOut();
+  readMotorInputs();
   if (newData && !pidMode) {
-    Serial.println(String(percentOuts[0], 1) + ", " + String(percentOuts[1], 1));
-    setA(percentOuts[0]);
-    setB(percentOuts[1]);
+    // Serial.println(String(motorInputs[0], 1) + ", " + String(motorInputs[1], 1));
+    setPercentOut(motorA, motorA.input);
+    setPercentOut(motorB, motorB.input);
     newData = false;
   }
-  // Serial.println(String(digitalRead(c1a)) + ", " + String(digitalRead(c2a)));
+  // Serial.println(String(digitalRead(motorA.c1)) + ", " + String(digitalRead(motorA.c2)));
+  // Serial.println(String(motorA.c1) + ", " + String(motorA.c2));
 
-  updateEncoderAVelocity();
+  updateMotorVelocities();
 
-  double output = constrain(Output + (Ks + (Kv * Setpoint)), -100, 100);
   if (newData && pidMode) {
-    Setpoint = percentOuts[0];
+    motorA.pidSetpoint = motorA.input;
+    motorB.pidSetpoint = motorB.input;
     newData = false;
   }
-  if(pidMode) {
-    Input = rpsA;
-    pid.Compute();
-    setA(output);
+  if (pidMode) {
+    for (int i = 0; i < 2; i++) {
+      motors[i].pidInput = motors[i].rps;
+      motors[i].pid.Compute();
+      motors[i].pidOutput = constrain(motors[i].pidOutput + (motors[i].kS + (motors[i].kV * motors[i].pidSetpoint)), -100, 100);
+    }
+    setPercentOut(motorA, motorA.pidOutput);
+    setPercentOut(motorB, motorB.pidOutput);
   }
 
   // Serial.print(String(rotationA) + ", ");
-  Serial.print(String(rpsA) + "r/s , ");
-  Serial.print(String(Setpoint) + "r/s , ");
-  Serial.println(output);
+  Serial.print(String(motorA.rotation) + "r A , ");
+  Serial.print(String(motorA.rps) + "r/s A , ");
+  Serial.print(String(motorB.rotation) + "r B , ");
+  Serial.println(String(motorB.rps) + "r/s B , ");
+  // Serial.println(output);
 }
 
-void setA(double percentOut) {
+void setPercentOut(Motor motor, double percentOut) {
   if (percentOut >= 0) {
-    digitalWrite(in1, LOW);
-    digitalWrite(in2, HIGH);
+    digitalWrite(motor.in1, LOW);
+    digitalWrite(motor.in2, HIGH);
   } else {
-    digitalWrite(in1, HIGH);
-    digitalWrite(in2, LOW);
+    digitalWrite(motor.in1, HIGH);
+    digitalWrite(motor.in2, LOW);
   }
 
-  analogWrite(enA, map(abs(percentOut), 0, 100, 0, 255));
+  analogWrite(motor.en, map(abs(percentOut), 0, 100, 0, 255));
 }
 
-void setB(double percentOut) {
-  if (percentOut >= 0) {
-    digitalWrite(in3, LOW);
-    digitalWrite(in4, HIGH);
-  } else {
-    digitalWrite(in3, HIGH);
-    digitalWrite(in4, LOW);
-  }
-
-  analogWrite(enB, map(abs(percentOut), 0, 100, 0, 255));
-}
-
-double readPercentOut() {
+double readMotorInputs() {
   while (Serial.available() && newData == false) {
     int inChar = Serial.read();
-
     if (inChar == '!') {
       pidMode = !pidMode;
       break;
     }
-
     if (isDigit(inChar) || inChar == '.' || inChar == '-') {
       inString += (char)inChar;
     }
-
     if ((inChar == ',' || inChar == '\n') && dataIndex <= 1) {
-      percentOuts[dataIndex] = constrain(inString.toDouble(), -100, 100);
+      motors[dataIndex].input = constrain(inString.toDouble(), -100, 100);
       inString = "";
       dataIndex++;
     }
-
     if (inChar == '\n') {
       newData = true;
       dataIndex = 0;
@@ -137,34 +147,47 @@ double readPercentOut() {
 }
 
 // called every loop
-void updateEncoderAVelocity() {
+void updateMotorVelocities() {
+  updateMotorVelocity(motorA);
+  updateMotorVelocity(motorB);
+}
+
+void updateMotorVelocity(Motor &motor) {
   unsigned long currMicros = micros();
-  if (currMicros > lastMicrosA) {
-    double secondsDiff = (currMicros - lastMicrosA) / 1000000.0;
-    if (updatedA || secondsDiff > 0.1) {
-      double rotationDiff = rotationA - lastRotationA;
-      rpsA = rotationDiff / secondsDiff;
-      lastRotationA = rotationA;
-      updatedA = false;
-      lastMicrosA = currMicros;
+  if (currMicros > motor.lastRpsUpdateMicros) {
+    double secondsDiff = (currMicros - motor.lastRpsUpdateMicros) / 1000000.0;
+    if (motor.isUpdated || secondsDiff > 0.1) {
+      double rotationDiff = motor.rotation - motor.lastRotation;
+      motor.rps = rotationDiff / secondsDiff;
+      motor.lastRotation = motor.rotation;
+      motor.isUpdated = false;
+      motor.lastRpsUpdateMicros = currMicros;
     }
   } else {
-    lastMicrosA = currMicros;
+    motor.lastRpsUpdateMicros = currMicros;
   }
 }
 
-void updateEncoderA() {
-  int c1aVal = digitalRead(c1a);
-  if (c1aVal == digitalRead(c2a)) {
+void updateMotorARotation() {
+  updateMotorRotation(motorA);
+}
+
+void updateMotorBRotation() {
+  updateMotorRotation(motorB);
+}
+
+void updateMotorRotation(Motor &motor) {
+  int c1Val = digitalRead(motor.c1);
+  if (c1Val == digitalRead(motor.c2)) {
     // CCW
-    ticksA += 1;
+    motor.ticks += 1;
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
     // CW
-    ticksA -= 1;
+    motor.ticks -= 1;
     digitalWrite(LED_BUILTIN, LOW);
   }
 
-  rotationA = ticksA / 100.0;
-  updatedA = true;
+  motor.rotation = motor.ticks / 100.0;
+  motor.isUpdated = true;
 }
