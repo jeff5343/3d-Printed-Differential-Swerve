@@ -15,13 +15,22 @@ bool newData = false;
 int dataIndex = 0;
 String inString = "";
 
+bool pidMode = false;
+
 volatile int ticksA = 0;
 volatile double rotationA = 0;
+volatile bool updatedA = false;
 
+double rpsA = 0;
+unsigned long lastMicrosA;
+double lastRotationA = 0;
+
+// PID
 double Setpoint, Input, Output;
-
-double Kp=30, Ki=0, Kd=0;
+double Kp = 1, Ki = 0, Kd = 0;
 PID pid(&Input, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+// feedforward
+double Ks = 12, Kv = 1.5;
 
 void setup() {
   pinMode(enA, OUTPUT);
@@ -37,32 +46,44 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(c1a), updateEncoderA, CHANGE);
 
-  Serial.begin(9600);
-  Serial.println("<Arduino program starting...>");
+  lastMicrosA = micros();
 
-  Input = rotationA;
+  Input = rpsA;
   Setpoint = 0;
   pid.SetMode(AUTOMATIC);
   pid.SetOutputLimits(-40, 40);
+
+  Serial.begin(9600);
+  Serial.println("<Arduino program starting...>");
 }
 
 void loop() {
   readPercentOut();
-  if (newData) {
+  if (newData && !pidMode) {
     Serial.println(String(percentOuts[0], 1) + ", " + String(percentOuts[1], 1));
     setA(percentOuts[0]);
     setB(percentOuts[1]);
     newData = false;
   }
   // Serial.println(String(digitalRead(c1a)) + ", " + String(digitalRead(c2a)));
-  Serial.print(String(rotationA) + ", ");
 
-  if (percentOuts[0] == 100) {
-    Input = rotationA;
-    pid.Compute();
-    setA(Output);
+  updateEncoderAVelocity();
+
+  double output = constrain(Output + (Ks + (Kv * Setpoint)), -100, 100);
+  if (newData && pidMode) {
+    Setpoint = percentOuts[0];
+    newData = false;
   }
-  Serial.println(Output);
+  if(pidMode) {
+    Input = rpsA;
+    pid.Compute();
+    setA(output);
+  }
+
+  // Serial.print(String(rotationA) + ", ");
+  Serial.print(String(rpsA) + "r/s , ");
+  Serial.print(String(Setpoint) + "r/s , ");
+  Serial.println(output);
 }
 
 void setA(double percentOut) {
@@ -92,6 +113,12 @@ void setB(double percentOut) {
 double readPercentOut() {
   while (Serial.available() && newData == false) {
     int inChar = Serial.read();
+
+    if (inChar == '!') {
+      pidMode = !pidMode;
+      break;
+    }
+
     if (isDigit(inChar) || inChar == '.' || inChar == '-') {
       inString += (char)inChar;
     }
@@ -109,6 +136,23 @@ double readPercentOut() {
   }
 }
 
+// called every loop
+void updateEncoderAVelocity() {
+  unsigned long currMicros = micros();
+  if (currMicros > lastMicrosA) {
+    double secondsDiff = (currMicros - lastMicrosA) / 1000000.0;
+    if (updatedA || secondsDiff > 0.1) {
+      double rotationDiff = rotationA - lastRotationA;
+      rpsA = rotationDiff / secondsDiff;
+      lastRotationA = rotationA;
+      updatedA = false;
+      lastMicrosA = currMicros;
+    }
+  } else {
+    lastMicrosA = currMicros;
+  }
+}
+
 void updateEncoderA() {
   int c1aVal = digitalRead(c1a);
   if (c1aVal == digitalRead(c2a)) {
@@ -120,5 +164,7 @@ void updateEncoderA() {
     ticksA -= 1;
     digitalWrite(LED_BUILTIN, LOW);
   }
+
   rotationA = ticksA / 100.0;
+  updatedA = true;
 }
