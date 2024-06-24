@@ -9,6 +9,8 @@ bool pidMode = false;
 struct Motor {
   // pins
   const int en, in1, in2, c1, c2;
+  // const
+  const bool reversePositive;
   // input
   double input;
   // data
@@ -25,51 +27,51 @@ struct Motor {
 
 Motor motorA = Motor{
   // pins
-  9, 4, 5, 2, 11,
+  9, 4, 5, 2, 11, true,
   // input
   0,
   // data
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  1, 0, 0,                           // kP, kI, kD
-  12, 1.5,                           // Ks, Kv
+  2, 0, 0,                           // kP, kI, kD
+  15, 1.25,                          // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)  // PID created later
 };
 
 Motor motorB = Motor{
   // pins
-  10, 6, 7, 3, 12,
+  10, 6, 7, 3, 12, false,
   //input
   0,
   // data
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  0, 0, 0,  // kP, kI, kD
-  0, 0,     // Ks, Kv
+  2, 0, 0,  // kP, kI, kD
+  12, 1.5,  // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)
 };
 
-Motor motors[2] = { motorA, motorB };
+Motor *motors[2] = { &motorA, &motorB };
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
 
   for (int i = 0; i < 2; i++) {
-    pinMode(motors[i].en, OUTPUT);
-    pinMode(motors[i].in1, OUTPUT);
-    pinMode(motors[i].in2, OUTPUT);
-    pinMode(motors[i].c1, INPUT);
-    pinMode(motors[i].c2, INPUT);
-    attachInterrupt(digitalPinToInterrupt(motors[i].c1), i == 0 ? updateMotorARotation : updateMotorBRotation, CHANGE);
+    pinMode(motors[i]->en, OUTPUT);
+    pinMode(motors[i]->in1, OUTPUT);
+    pinMode(motors[i]->in2, OUTPUT);
+    pinMode(motors[i]->c1, INPUT);
+    pinMode(motors[i]->c2, INPUT);
+    attachInterrupt(digitalPinToInterrupt(motors[i]->c1), i == 0 ? updateMotorARotation : updateMotorBRotation, CHANGE);
 
-    motors[i].lastRpsUpdateMicros = micros();
-    motors[i].pid = PID(
-      &motors[i].pidInput, &motors[i].pidOutput, &motors[i].pidSetpoint,
-      motors[i].kP, motors[i].kI, motors[i].kD, DIRECT);
-    motors[i].pid.SetMode(AUTOMATIC);
-    motors[i].pid.SetOutputLimits(-100, 100);
+    motors[i]->lastRpsUpdateMicros = micros();
+    motors[i]->pid = PID(
+      &motors[i]->pidInput, &motors[i]->pidOutput, &motors[i]->pidSetpoint,
+      motors[i]->kP, motors[i]->kI, motors[i]->kD, DIRECT);
+    motors[i]->pid.SetMode(AUTOMATIC);
+    motors[i]->pid.SetOutputLimits(-100, 100);
   }
 
   Serial.begin(9600);
@@ -79,7 +81,6 @@ void setup() {
 void loop() {
   readMotorInputs();
   if (newData && !pidMode) {
-    // Serial.println(String(motorInputs[0], 1) + ", " + String(motorInputs[1], 1));
     setPercentOut(motorA, motorA.input);
     setPercentOut(motorB, motorB.input);
     newData = false;
@@ -96,24 +97,28 @@ void loop() {
   }
   if (pidMode) {
     for (int i = 0; i < 2; i++) {
-      motors[i].pidInput = motors[i].rps;
-      motors[i].pid.Compute();
-      motors[i].pidOutput = constrain(motors[i].pidOutput + (motors[i].kS + (motors[i].kV * motors[i].pidSetpoint)), -100, 100);
+      motors[i]->pidInput = motors[i]->rps;
+      motors[i]->pid.Compute();
+      int setpointSign = motors[i]->pidSetpoint > 0 ? 1 : -1;
+      double output = constrain(motors[i]->pidOutput + ((motors[i]->kS * setpointSign) + (motors[i]->kV * motors[i]->pidSetpoint)), -100, 100);
+      setPercentOut(*motors[i], output);
     }
-    setPercentOut(motorA, motorA.pidOutput);
-    setPercentOut(motorB, motorB.pidOutput);
   }
 
-  // Serial.print(String(rotationA) + ", ");
-  Serial.print(String(motorA.rotation) + "r A , ");
+  Serial.print(String(motorA.input, 1) + "AI , ");
+  // Serial.print(String(motorA.pidOutput, 1) + " AO , ");
   Serial.print(String(motorA.rps) + "r/s A , ");
-  Serial.print(String(motorB.rotation) + "r B , ");
+  Serial.print(String(motorB.input, 1) + "BI , ");
+  // Serial.print(String(motorB.pidOutput, 1) + " BO , ")
   Serial.println(String(motorB.rps) + "r/s B , ");
-  // Serial.println(output);
 }
 
 void setPercentOut(Motor motor, double percentOut) {
-  if (percentOut >= 0) {
+  bool direction = percentOut >= 0;
+  if (motor.reversePositive) {
+    direction = !direction;
+  }
+  if (direction) {
     digitalWrite(motor.in1, LOW);
     digitalWrite(motor.in2, HIGH);
   } else {
@@ -135,7 +140,9 @@ double readMotorInputs() {
       inString += (char)inChar;
     }
     if ((inChar == ',' || inChar == '\n') && dataIndex <= 1) {
-      motors[dataIndex].input = constrain(inString.toDouble(), -100, 100);
+      motors[dataIndex]->input = constrain(inString.toDouble(), -100, 100);
+      Serial.println(motors[dataIndex]->input);
+      Serial.println(motorA.input);
       inString = "";
       dataIndex++;
     }
@@ -180,11 +187,11 @@ void updateMotorRotation(Motor &motor) {
   int c1Val = digitalRead(motor.c1);
   if (c1Val == digitalRead(motor.c2)) {
     // CCW
-    motor.ticks += 1;
+    motor.ticks += 1 * -1;
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
     // CW
-    motor.ticks -= 1;
+    motor.ticks -= 1 * -1;
     digitalWrite(LED_BUILTIN, LOW);
   }
 
