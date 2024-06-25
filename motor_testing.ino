@@ -17,8 +17,9 @@ struct Motor {
   const int en, in1, in2, c1, c2;
   // const
   const bool reversePositive;
-  // input
+  // input/output
   double input;
+  double output;
   // data
   volatile bool isUpdated;
   volatile int ticks;
@@ -34,14 +35,14 @@ struct Motor {
 Motor motorA = Motor{
   // pins
   9, 4, 5, 2, 11, true,
-  // input
-  0,
+  // input/output
+  0, 0,
   // data
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
   5, 0, 0,                           // kP, kI, kD
-  5, 7,                          // Ks, Kv
+  5, 7,                              // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)  // PID created later
 };
 
@@ -49,17 +50,22 @@ Motor motorB = Motor{
   // pins
   10, 6, 7, 3, 12, false,
   //input
-  0,
+  0, 0,
   // data
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
   5, 0, 0,  // kP, kI, kD
-  5, 7,  // Ks, Kv
+  5, 7,     // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)
 };
 
 Motor *motors[2] = { &motorA, &motorB };
+
+// module rotation pid
+double rotationPidInput = 0, rotationPidOutput = 0, rotationPidSetpoint = 0;
+double kP=30, kI=0, kD=0.5, kS=12;
+PID rotationPid(&rotationPidInput, &rotationPidOutput, &rotationPidSetpoint, kP, kI, kD, DIRECT);
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -80,6 +86,9 @@ void setup() {
     motors[i]->pid.SetOutputLimits(-100, 100);
   }
 
+  rotationPid.SetMode(AUTOMATIC);
+  rotationPid.SetOutputLimits(-100, 100);
+
   Serial.begin(9600);
   Serial.println("<Arduino program starting...>");
 }
@@ -87,8 +96,8 @@ void setup() {
 void loop() {
   readMotorInputs();
   if (newData && !pidMode) {
-    setPercentOut(motorA, motorA.input);
-    setPercentOut(motorB, motorB.input);
+    motorA.output = motorA.input;
+    motorB.output = motorB.input;
     newData = false;
   }
   // Serial.println(String(digitalRead(motorA.c1)) + ", " + String(digitalRead(motorA.c2)));
@@ -97,26 +106,39 @@ void loop() {
   updateMotorVelocities();
 
   if (newData && pidMode) {
-    motorA.pidSetpoint = motorA.input;
-    motorB.pidSetpoint = motorB.input;
+    // motorA.pidSetpoint = motorA.input;
+    // motorB.pidSetpoint = motorB.input;
+
+    rotationPidSetpoint = motorA.input;
+
     newData = false;
   }
   if (pidMode) {
-    for (int i = 0; i < 2; i++) {
-      motors[i]->pidInput = motors[i]->rps;
-      motors[i]->pid.Compute();
-      int setpointSign = motors[i]->pidSetpoint > 0 ? 1 : -1;
-      double output = constrain(motors[i]->pidOutput + ((motors[i]->kS * setpointSign) + (motors[i]->kV * motors[i]->pidSetpoint)), -100, 100);
-      setPercentOut(*motors[i], output);
-    }
+    // for (int i = 0; i < 2; i++) {
+    //   motors[i]->pidInput = motors[i]->rps;
+    //   motors[i]->pid.Compute();
+    //   int setpointSign = motors[i]->pidSetpoint > 0 ? 1 : -1;
+    //   motors[i]->output = constrain(motors[i]->pidOutput + ((motors[i]->kS * setpointSign) + (motors[i]->kV * motors[i]->pidSetpoint)), -100, 100);
+    // }
+
+    rotationPidInput = moduleRotation;
+    rotationPid.Compute();
+    int pidOutputSign = rotationPidOutput > 0 ? 1 : -1;
+    double output = constrain(rotationPidOutput + (kS * pidOutputSign), -100, 100);
+    motorA.output = output;
+    motorB.output = output;
   }
 
-  Serial.print(String(motorA.input, 1) + "AI , ");
+  setPercentOut(motorA, motorA.output);
+  setPercentOut(motorB, motorB.output);
+
+  // Serial.print(String(motorA.input, 1) + "AI , ");
   // Serial.print(String(motorA.rotation, 1) + " AO , ");
-  Serial.print(String(motorA.rps) + "r/s A , ");
-  Serial.print(String(motorB.input, 1) + "BI , ");
+  // Serial.print(String(motorA.rps) + "r/s A , ");
+  // Serial.print(String(motorB.input, 1) + "BI , ");
   // Serial.print(String(motorB.pidOutput, 1) + " BO , ")
-  Serial.print(String(motorB.rps) + "r/s B , ");
+  // Serial.print(String(motorB.rps) + "r/s B , ");
+  Serial.print(String(motorA.output) + " O, ");
   Serial.println(String(moduleRotation) + "r M , ");
 }
 
@@ -139,8 +161,12 @@ void setPercentOut(Motor motor, double percentOut) {
 double readMotorInputs() {
   while (Serial.available() && newData == false) {
     int inChar = Serial.read();
-    if (inChar == '!') {
+    if (inChar == '!') { // PID MODE
       pidMode = !pidMode;
+      break;
+    }
+    if (inChar == '=') { // ZERO MODULE
+      moduleRotation = 0;
       break;
     }
     if (isDigit(inChar) || inChar == '.' || inChar == '-') {
@@ -192,7 +218,7 @@ void updateMotorBRotation() {
 
 void updateMotorRotation(Motor &motor) {
   int c1Val = digitalRead(motor.c1);
-  
+
   if (c1Val != digitalRead(motor.c2)) {
     // CCW
     motor.ticks += 1;
