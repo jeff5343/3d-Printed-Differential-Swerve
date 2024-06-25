@@ -40,8 +40,8 @@ Motor motorA = Motor{
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  2, 0, 0,                           // kP, kI, kD
-  15, 1.25,                          // Ks, Kv
+  5, 0, 0,                           // kP, kI, kD
+  5, 7,                          // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)  // PID created later
 };
 
@@ -54,8 +54,8 @@ Motor motorB = Motor{
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  2, 0, 0,  // kP, kI, kD
-  12, 1.5,  // Ks, Kv
+  5, 0, 0,  // kP, kI, kD
+  5, 7,  // Ks, Kv
   PID(NULL, NULL, NULL, 0, 0, 0, 0)
 };
 
@@ -112,7 +112,7 @@ void loop() {
   }
 
   Serial.print(String(motorA.input, 1) + "AI , ");
-  Serial.print(String(motorA.rotation, 1) + " AO , ");
+  // Serial.print(String(motorA.rotation, 1) + " AO , ");
   Serial.print(String(motorA.rps) + "r/s A , ");
   Serial.print(String(motorB.input, 1) + "BI , ");
   // Serial.print(String(motorB.pidOutput, 1) + " BO , ")
