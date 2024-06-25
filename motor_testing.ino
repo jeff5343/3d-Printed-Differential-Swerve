@@ -1,5 +1,11 @@
 #include <PID_v1.h>
 
+const double tickToRotationRatio = 1.0 / 4.0;
+const double motorGearRatio = 1.0 / 100.0;
+const double driveGearRatio = 17.0 / 60.0;
+const double moduleRotationPerTick = tickToRotationRatio * motorGearRatio * driveGearRatio / 2.0;
+double moduleRotation = 0;
+
 bool newData = false;
 int dataIndex = 0;
 String inString = "";
@@ -106,11 +112,12 @@ void loop() {
   }
 
   Serial.print(String(motorA.input, 1) + "AI , ");
-  // Serial.print(String(motorA.pidOutput, 1) + " AO , ");
+  Serial.print(String(motorA.rotation, 1) + " AO , ");
   Serial.print(String(motorA.rps) + "r/s A , ");
   Serial.print(String(motorB.input, 1) + "BI , ");
   // Serial.print(String(motorB.pidOutput, 1) + " BO , ")
-  Serial.println(String(motorB.rps) + "r/s B , ");
+  Serial.print(String(motorB.rps) + "r/s B , ");
+  Serial.println(String(moduleRotation) + "r M , ");
 }
 
 void setPercentOut(Motor motor, double percentOut) {
@@ -185,16 +192,19 @@ void updateMotorBRotation() {
 
 void updateMotorRotation(Motor &motor) {
   int c1Val = digitalRead(motor.c1);
-  if (c1Val == digitalRead(motor.c2)) {
+  
+  if (c1Val != digitalRead(motor.c2)) {
     // CCW
-    motor.ticks += 1 * -1;
+    motor.ticks += 1;
+    moduleRotation += moduleRotationPerTick;
     digitalWrite(LED_BUILTIN, HIGH);
   } else {
     // CW
-    motor.ticks -= 1 * -1;
+    motor.ticks -= 1;
+    moduleRotation -= moduleRotationPerTick;
     digitalWrite(LED_BUILTIN, LOW);
   }
 
-  motor.rotation = motor.ticks / 100.0;
+  motor.rotation = motor.ticks * tickToRotationRatio * motorGearRatio;
   motor.isUpdated = true;
 }
