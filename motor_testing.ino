@@ -1,4 +1,4 @@
-#include <PID_v1.h>
+#include <ArduPID.h>
 
 const double tickToRotationRatio = 1.0 / 4.0;
 const double motorGearRatio = 1.0 / 100.0;
@@ -10,7 +10,7 @@ bool newData = false;
 int dataIndex = 0;
 String inString = "";
 
-bool pidMode = false;
+bool pidMode = true;
 
 struct Motor {
   // pins
@@ -29,7 +29,7 @@ struct Motor {
   // pid
   double pidSetpoint, pidInput, pidOutput;
   const double kP, kI, kD, kS, kV;
-  PID pid;
+  ArduPID pid;
 };
 
 Motor motorA = Motor{
@@ -41,9 +41,9 @@ Motor motorA = Motor{
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  5, 0, 0,                           // kP, kI, kD
-  5, 7,                              // Ks, Kv
-  PID(NULL, NULL, NULL, 0, 0, 0, 0)  // PID created later
+  0, 0, 0,   // kP, kI, kD
+  0, 0,      // Ks, Kv
+  ArduPID()  // PID created later
 };
 
 Motor motorB = Motor{
@@ -55,17 +55,20 @@ Motor motorB = Motor{
   false, 0, 0, 0, 0, 0,
   // pid
   0, 0, 0,
-  5, 0, 0,  // kP, kI, kD
-  5, 7,     // Ks, Kv
-  PID(NULL, NULL, NULL, 0, 0, 0, 0)
+  5, 0, 0,   // kP, kI, kD
+  5, 7,      // Ks, Kv
+  ArduPID()  // PID created later
 };
 
 Motor *motors[2] = { &motorA, &motorB };
 
 // module rotation pid
 double rotationPidInput = 0, rotationPidOutput = 0, rotationPidSetpoint = 0;
-double kP=30, kI=0, kD=0.5, kS=12;
-PID rotationPid(&rotationPidInput, &rotationPidOutput, &rotationPidSetpoint, kP, kI, kD, DIRECT);
+double kS = 0;
+double kPFast = 20, kIFast = 1, kDFast = 0, kSFast = 0;
+double kPSlow = 7, kISlow = 0, kDSlow = 0, kSSlow = .5;
+ArduPID rotationPid;
+bool fastPidMode = true;
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
@@ -79,15 +82,16 @@ void setup() {
     attachInterrupt(digitalPinToInterrupt(motors[i]->c1), i == 0 ? updateMotorARotation : updateMotorBRotation, CHANGE);
 
     motors[i]->lastRpsUpdateMicros = micros();
-    motors[i]->pid = PID(
+    motors[i]->pid.begin(
       &motors[i]->pidInput, &motors[i]->pidOutput, &motors[i]->pidSetpoint,
-      motors[i]->kP, motors[i]->kI, motors[i]->kD, DIRECT);
-    motors[i]->pid.SetMode(AUTOMATIC);
-    motors[i]->pid.SetOutputLimits(-100, 100);
+      motors[i]->kP, motors[i]->kI, motors[i]->kD);
+    motors[i]->pid.setOutputLimits(-100, 100);
+    motors[i]->pid.start();
   }
 
-  rotationPid.SetMode(AUTOMATIC);
-  rotationPid.SetOutputLimits(-100, 100);
+  rotationPid.begin(&rotationPidInput, &rotationPidOutput, &rotationPidSetpoint, kPFast, kIFast, kDFast);
+  rotationPid.setOutputLimits(-9, 9);
+  rotationPid.start();
 
   Serial.begin(9600);
   Serial.println("<Arduino program starting...>");
@@ -95,51 +99,92 @@ void setup() {
 
 void loop() {
   readMotorInputs();
+  updateMotorVelocities();
+
   if (newData && !pidMode) {
     motorA.output = motorA.input;
     motorB.output = motorB.input;
     newData = false;
   }
-  // Serial.println(String(digitalRead(motorA.c1)) + ", " + String(digitalRead(motorA.c2)));
-  // Serial.println(String(motorA.c1) + ", " + String(motorA.c2));
+  // Serial.print(String(digitalRead(motorA.c1)) + ", " + String(digitalRead(motorA.c2)));
+  // Serial.print(String(motorA.c1) + ", " + String(motorA.c2));
 
-  updateMotorVelocities();
-
-  if (newData && pidMode) {
-    // motorA.pidSetpoint = motorA.input;
-    // motorB.pidSetpoint = motorB.input;
-
-    rotationPidSetpoint = motorA.input;
-
-    newData = false;
-  }
   if (pidMode) {
-    // for (int i = 0; i < 2; i++) {
-    //   motors[i]->pidInput = motors[i]->rps;
-    //   motors[i]->pid.Compute();
-    //   int setpointSign = motors[i]->pidSetpoint > 0 ? 1 : -1;
-    //   motors[i]->output = constrain(motors[i]->pidOutput + ((motors[i]->kS * setpointSign) + (motors[i]->kV * motors[i]->pidSetpoint)), -100, 100);
+    if (newData) {
+      motorA.pidSetpoint = motorA.input;
+      motorB.pidSetpoint = motorB.input;
+
+      // rotationPidSetpoint = motorA.input;
+
+      newData = false;
+    }
+
+    // if (abs(rotationPidSetpoint - moduleRotation) > 0.05) {
+    //   int direction = rotationPidSetpoint > moduleRotation ? 1 : -1;
+    //   motorA.pidSetpoint = 9 * direction;
+    //   motorB.pidSetpoint = 9 * direction;
+    // } else {
+    //   motorA.pidSetpoint = 0;
+    //   motorB.pidSetpoint = 0;
     // }
 
-    rotationPidInput = moduleRotation;
-    rotationPid.Compute();
-    int pidOutputSign = rotationPidOutput > 0 ? 1 : -1;
-    double output = constrain(rotationPidOutput + (kS * pidOutputSign), -100, 100);
-    motorA.output = output;
-    motorB.output = output;
+    // double error = abs(rotationPidSetpoint - moduleRotation);
+    // double errorPidSlowThreshold = 0.2;
+    // if (error > errorPidSlowThreshold && !fastPidMode) {
+    //   setRotationPIDMode(false);
+    // } else if (error <= errorPidSlowThreshold && fastPidMode) {
+    //   setRotationPIDMode(false);
+    // }
+
+    // if (error > 0.005) {
+    //   rotationPidInput = moduleRotation;
+    //   rotationPid.compute();
+    //   int pidOutputSign = rotationPidOutput > 0 ? 1 : -1;
+    //   double output = constrain(rotationPidOutput + (kS * pidOutputSign), -9, 9);
+    //   motorA.pidSetpoint = output;
+    //   motorB.pidSetpoint = output;
+    // } else {
+    //   motorA.pidSetpoint = 0;
+    //   motorB.pidSetpoint = 0;
+    // }
+
+    for (int i = 0; i < 2; i++) {
+      motors[i]->pidInput = motors[i]->rps;
+      motors[i]->pid.compute();
+      int setpointSign = motors[i]->pidSetpoint > 0 ? 1 : -1;
+      motors[i]->output = constrain(motors[i]->pidOutput + ((motors[i]->kS * setpointSign) + (motors[i]->kV * motors[i]->pidSetpoint)), -100, 100);
+    }
   }
 
   setPercentOut(motorA, motorA.output);
   setPercentOut(motorB, motorB.output);
 
   // Serial.print(String(motorA.input, 1) + "AI , ");
-  // Serial.print(String(motorA.rotation, 1) + " AO , ");
-  // Serial.print(String(motorA.rps) + "r/s A , ");
+  // Serial.print(String(motorA.output, 1) + " AO , ");
+  Serial.print(String(motorA.rps) + "r/s A , ");
   // Serial.print(String(motorB.input, 1) + "BI , ");
-  // Serial.print(String(motorB.pidOutput, 1) + " BO , ")
-  // Serial.print(String(motorB.rps) + "r/s B , ");
-  Serial.print(String(motorA.output) + " O, ");
-  Serial.println(String(moduleRotation) + "r M , ");
+  // Serial.print(String(motorB.output, 1) + " BO , ");
+  Serial.print(String(motorB.rps) + "r/s B , ");
+
+  // Serial.print(String(fastPidMode) + "r M , ");
+  // Serial.print(String(motorA.output / 100.0) + " O, ");
+  // Serial.print(String(rotationPidSetpoint) + "r M , ");
+  // Serial.print(String(moduleRotation) + "r M , ");
+
+  Serial.println();
+}
+
+void setRotationPIDMode(boolean fast) {
+  fastPidMode = fast;
+  if (fast) {
+    rotationPid.setCoefficients(kPFast, kIFast, kDFast);
+    kS = kSFast;
+  } else {
+    rotationPid.setCoefficients(kPSlow, kISlow, kDSlow);
+    kS = kSSlow;
+  }
+  rotationPid.reset();
+  rotationPid.start();
 }
 
 void setPercentOut(Motor motor, double percentOut) {
@@ -161,11 +206,11 @@ void setPercentOut(Motor motor, double percentOut) {
 double readMotorInputs() {
   while (Serial.available() && newData == false) {
     int inChar = Serial.read();
-    if (inChar == '!') { // PID MODE
+    if (inChar == '!') {  // PID MODE
       pidMode = !pidMode;
       break;
     }
-    if (inChar == '=') { // ZERO MODULE
+    if (inChar == '=') {  // ZERO MODULE
       moduleRotation = 0;
       break;
     }
@@ -174,8 +219,6 @@ double readMotorInputs() {
     }
     if ((inChar == ',' || inChar == '\n') && dataIndex <= 1) {
       motors[dataIndex]->input = constrain(inString.toDouble(), -100, 100);
-      Serial.println(motors[dataIndex]->input);
-      Serial.println(motorA.input);
       inString = "";
       dataIndex++;
     }
