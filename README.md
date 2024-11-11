@@ -1,11 +1,13 @@
 # 3d Printed Differential Swerve
 
-Not finished
+Almost finished!
 
-CAD is based off of https://www.printables.com/model/300105-differential-swerve-drive <br>
-I wanted to make a really small swerve bot from scratch and after many failed attempts I found WildWilly's design <br>
-So I used his design as an example and cadded a smaller (and a lot jankier) version <br>
+My goal is to create a small swerve bot from scratch. After many failed attempts I found [WildWilly's design](https://www.printables.com/model/300105-differential-swerve-drive). So I used his designt to draw a smaller, jankier version <br>
 
-CAD progress as of now:
+CAD:
 
-<img width="446" alt="Screenshot 2024-06-17 at 6 22 21 PM" src="https://github.com/jeff5343/3d-Printed-Differential-Swerve/assets/90739298/f6e0b935-ab2c-4bc5-9750-b078828ff3a0">
+<img width="600" alt="Diff-Swerve" src="https://github.com/user-attachments/assets/cfb582d8-75ce-4cb2-9ba4-20033a245fbc">
+<br>
+<img width="470" alt="Diff-Swerve-Module" src="https://github.com/user-attachments/assets/832c4338-be59-4003-98e9-b717c2810e5f">
+
+
