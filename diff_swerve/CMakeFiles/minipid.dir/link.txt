@@ -1,0 +1,2 @@
+/usr/bin/ar qc libminipid.a CMakeFiles/minipid.dir/libs/MiniPID.cpp.o
+/usr/bin/ranlib libminipid.a

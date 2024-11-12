@@ -36,6 +36,7 @@ int main() {
 	N20Motor rightMotor(18, 23, 12, 16);
 	N20Motor leftMotor(24, 25, 20, 21);
 
+	// kP, kI, kD, kF
 	rightMotor.setPIDF(0.01, 0, 0, 0.075);
 	leftMotor.setPIDF(0.01, 0, 0, 0.075);
 
@@ -51,6 +52,7 @@ int main() {
 	MiniPID rotationPid = MiniPID(20, 0, 0);
 	rotationPid.setOutputLimits(-7, 7);
 	float kS = 2.5;
+	float kStaticFriction = 2.5;
 
 	double rotationTarget = 0;
 
@@ -131,28 +133,43 @@ int main() {
 		double velOutput = rotationPid.getOutput(moduleRotation, finalTarget);
 		velOutput += copysign(1.0, velOutput) * kS;
 
-		if (abs(moduleRotation - finalTarget) > 0.01 && rotationTarget != 0) {
+		float rotError = abs(moduleRotation - finalTarget);
+
+		// help start moving motors
+		if (rotError > 0.01 && (leftMotor.rps < 0.01 || rightMotor.rps < 0.01)) {
+			velOutput += copysign(1.0, velOutput) * kStaticFriction;
+		}
+
+		if (rotError > 0.01 && rotationTarget != 0) {
 			leftMotor.setTargetVelocity(-velOutput);
 			rightMotor.setTargetVelocity(-velOutput);
+
+			Logger::logger() << "ROTATING!" << velOutput << endl;
 		} else {
 			leftMotor.setTargetVelocity(targetVel);
 			rightMotor.setTargetVelocity(-targetVel);
+
+			Logger::logger() << "DRIVIGN!" << targetVel << endl;
 		}
 
-		// TELEMETRY
-		Logger::plotter() << leftMotor.getRps() << " " << targetVel << " " << rightMotor.getRps() << endl;
+		Logger::logger() << leftMotor.rps << " " << rightMotor.rps << endl;
 
-		// Logger::logger() << leftY) << ", " << leftX << " | ";
-		Logger::logger() << inputRight << ", " << inputLeft << endl;
-		Logger::logger() << rightMotor.getRotations() << " | " << leftMotor.getRotations() << endl;
-		Logger::logger() << moduleRotation << " rotations" << endl;
-		Logger::logger() << rotationTarget << " !!" <<  endl;
-		Logger::logger() << finalTarget << " !! TARGET!" <<  endl;
-		Logger::logger() << targetVel << " !! TARGET VELOCITY!" <<  endl;
-		Logger::logger() << velOutput << " !!~" <<  endl;
-		Logger::logger() << atan2(leftY, leftX) / (2.0 * M_PI) << " !!~" <<  endl;
+		// TELEMETRY
+		//Logger::plotter() << leftMotor.getRps() << " " << targetVel << " " << rightMotor.getRps() << endl;
+
+		//// Logger::logger() << leftY) << ", " << leftX << " | ";
+		//Logger::logger() << inputRight << ", " << inputLeft << endl;
+		//Logger::logger() << rightMotor.getRotations() << " | " << leftMotor.getRotations() << endl;
+		//Logger::logger() << moduleRotation << " rotations" << endl;
+		//Logger::logger() << rotationTarget << " !!" <<  endl;
+		//Logger::logger() << finalTarget << " !! TARGET!" <<  endl;
+		//Logger::logger() << targetVel << " !! TARGET VELOCITY!" <<  endl;
+		//Logger::logger() << velOutput << " !!~" <<  endl;
+		//Logger::logger() << atan2(leftY, leftX) / (2.0 * M_PI) << " !!~" <<  endl;
 		// Logger::logger() << rightMotor.getRps() << " | " << leftMotor.getRps();
 		// Logger::logger() << rightMotor.ticks << " | " << leftMotor.ticks;
+
+		Logger::logger() << "-------------------" << endl;
 
 		// TODO: subtract how long system took in the body of the for loop?
 		gpioDelay(20000);

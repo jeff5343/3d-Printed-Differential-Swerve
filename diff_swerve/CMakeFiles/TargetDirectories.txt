@@ -1,0 +1,4 @@
+/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles/minipid.dir
+/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles/output.dir
+/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles/edit_cache.dir
+/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles/rebuild_cache.dir
