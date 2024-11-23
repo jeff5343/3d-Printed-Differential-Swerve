@@ -83,10 +83,24 @@ CMakeFiles/output.dir/src/components/n20_motor.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/output.dir/src/components/n20_motor.cpp.s"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/n20_motor.cpp -o CMakeFiles/output.dir/src/components/n20_motor.cpp.s
 
+CMakeFiles/output.dir/src/components/swerve_module.cpp.o: CMakeFiles/output.dir/flags.make
+CMakeFiles/output.dir/src/components/swerve_module.cpp.o: src/components/swerve_module.cpp
+CMakeFiles/output.dir/src/components/swerve_module.cpp.o: CMakeFiles/output.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/output.dir/src/components/swerve_module.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/output.dir/src/components/swerve_module.cpp.o -MF CMakeFiles/output.dir/src/components/swerve_module.cpp.o.d -o CMakeFiles/output.dir/src/components/swerve_module.cpp.o -c /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/swerve_module.cpp
+
+CMakeFiles/output.dir/src/components/swerve_module.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/output.dir/src/components/swerve_module.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/swerve_module.cpp > CMakeFiles/output.dir/src/components/swerve_module.cpp.i
+
+CMakeFiles/output.dir/src/components/swerve_module.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/output.dir/src/components/swerve_module.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/swerve_module.cpp -o CMakeFiles/output.dir/src/components/swerve_module.cpp.s
+
 CMakeFiles/output.dir/src/components/xbox_controller.cpp.o: CMakeFiles/output.dir/flags.make
 CMakeFiles/output.dir/src/components/xbox_controller.cpp.o: src/components/xbox_controller.cpp
 CMakeFiles/output.dir/src/components/xbox_controller.cpp.o: CMakeFiles/output.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/output.dir/src/components/xbox_controller.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/output.dir/src/components/xbox_controller.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/output.dir/src/components/xbox_controller.cpp.o -MF CMakeFiles/output.dir/src/components/xbox_controller.cpp.o.d -o CMakeFiles/output.dir/src/components/xbox_controller.cpp.o -c /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/xbox_controller.cpp
 
 CMakeFiles/output.dir/src/components/xbox_controller.cpp.i: cmake_force
@@ -100,7 +114,7 @@ CMakeFiles/output.dir/src/components/xbox_controller.cpp.s: cmake_force
 CMakeFiles/output.dir/src/main.cpp.o: CMakeFiles/output.dir/flags.make
 CMakeFiles/output.dir/src/main.cpp.o: src/main.cpp
 CMakeFiles/output.dir/src/main.cpp.o: CMakeFiles/output.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/output.dir/src/main.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/output.dir/src/main.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/output.dir/src/main.cpp.o -MF CMakeFiles/output.dir/src/main.cpp.o.d -o CMakeFiles/output.dir/src/main.cpp.o -c /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/main.cpp
 
 CMakeFiles/output.dir/src/main.cpp.i: cmake_force
@@ -114,7 +128,7 @@ CMakeFiles/output.dir/src/main.cpp.s: cmake_force
 CMakeFiles/output.dir/src/utils/logger.cpp.o: CMakeFiles/output.dir/flags.make
 CMakeFiles/output.dir/src/utils/logger.cpp.o: src/utils/logger.cpp
 CMakeFiles/output.dir/src/utils/logger.cpp.o: CMakeFiles/output.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/output.dir/src/utils/logger.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/output.dir/src/utils/logger.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/output.dir/src/utils/logger.cpp.o -MF CMakeFiles/output.dir/src/utils/logger.cpp.o.d -o CMakeFiles/output.dir/src/utils/logger.cpp.o -c /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/utils/logger.cpp
 
 CMakeFiles/output.dir/src/utils/logger.cpp.i: cmake_force
@@ -128,7 +142,7 @@ CMakeFiles/output.dir/src/utils/logger.cpp.s: cmake_force
 CMakeFiles/output.dir/src/utils/util.cpp.o: CMakeFiles/output.dir/flags.make
 CMakeFiles/output.dir/src/utils/util.cpp.o: src/utils/util.cpp
 CMakeFiles/output.dir/src/utils/util.cpp.o: CMakeFiles/output.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building CXX object CMakeFiles/output.dir/src/utils/util.cpp.o"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building CXX object CMakeFiles/output.dir/src/utils/util.cpp.o"
 	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/output.dir/src/utils/util.cpp.o -MF CMakeFiles/output.dir/src/utils/util.cpp.o.d -o CMakeFiles/output.dir/src/utils/util.cpp.o -c /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/utils/util.cpp
 
 CMakeFiles/output.dir/src/utils/util.cpp.i: cmake_force
@@ -142,6 +156,7 @@ CMakeFiles/output.dir/src/utils/util.cpp.s: cmake_force
 # Object files for target output
 output_OBJECTS = \
 "CMakeFiles/output.dir/src/components/n20_motor.cpp.o" \
+"CMakeFiles/output.dir/src/components/swerve_module.cpp.o" \
 "CMakeFiles/output.dir/src/components/xbox_controller.cpp.o" \
 "CMakeFiles/output.dir/src/main.cpp.o" \
 "CMakeFiles/output.dir/src/utils/logger.cpp.o" \
@@ -151,6 +166,7 @@ output_OBJECTS = \
 output_EXTERNAL_OBJECTS =
 
 output: CMakeFiles/output.dir/src/components/n20_motor.cpp.o
+output: CMakeFiles/output.dir/src/components/swerve_module.cpp.o
 output: CMakeFiles/output.dir/src/components/xbox_controller.cpp.o
 output: CMakeFiles/output.dir/src/main.cpp.o
 output: CMakeFiles/output.dir/src/utils/logger.cpp.o
@@ -161,7 +177,7 @@ output: /usr/local/lib/libpigpio.so
 output: /usr/lib/aarch64-linux-gnu/librt.a
 output: /usr/lib/aarch64-linux-gnu/libevdev.so
 output: CMakeFiles/output.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Linking CXX executable output"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/pi/3d-Printed-Differential-Swerve/diff_swerve/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Linking CXX executable output"
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/output.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.

@@ -190,6 +190,30 @@ src/components/n20_motor.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/output.dir/build.make CMakeFiles/output.dir/src/components/n20_motor.cpp.s
 .PHONY : src/components/n20_motor.cpp.s
 
+src/components/swerve_module.o: src/components/swerve_module.cpp.o
+.PHONY : src/components/swerve_module.o
+
+# target to build an object file
+src/components/swerve_module.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/output.dir/build.make CMakeFiles/output.dir/src/components/swerve_module.cpp.o
+.PHONY : src/components/swerve_module.cpp.o
+
+src/components/swerve_module.i: src/components/swerve_module.cpp.i
+.PHONY : src/components/swerve_module.i
+
+# target to preprocess a source file
+src/components/swerve_module.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/output.dir/build.make CMakeFiles/output.dir/src/components/swerve_module.cpp.i
+.PHONY : src/components/swerve_module.cpp.i
+
+src/components/swerve_module.s: src/components/swerve_module.cpp.s
+.PHONY : src/components/swerve_module.s
+
+# target to generate assembly for a file
+src/components/swerve_module.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/output.dir/build.make CMakeFiles/output.dir/src/components/swerve_module.cpp.s
+.PHONY : src/components/swerve_module.cpp.s
+
 src/components/xbox_controller.o: src/components/xbox_controller.cpp.o
 .PHONY : src/components/xbox_controller.o
 
@@ -302,6 +326,9 @@ help:
 	@echo "... src/components/n20_motor.o"
 	@echo "... src/components/n20_motor.i"
 	@echo "... src/components/n20_motor.s"
+	@echo "... src/components/swerve_module.o"
+	@echo "... src/components/swerve_module.i"
+	@echo "... src/components/swerve_module.s"
 	@echo "... src/components/xbox_controller.o"
 	@echo "... src/components/xbox_controller.i"
 	@echo "... src/components/xbox_controller.s"

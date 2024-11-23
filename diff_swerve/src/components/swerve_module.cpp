@@ -2,17 +2,20 @@
 #include "n20_motor.h"
 #include "swerve_module.h"
 
+#include <cmath>
+
+
 SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants) {
-  this->moduleConstants = moduleConstants;
-  this->rightMotor = N20Motor::N20Motor(moduleConstants.r_en, moduleConstants.r_in, moduleConstants.r_c1, moduleConstants.r_c2);
-  this->leftMotor = N20Motor::N20Motor(moduleConstants.l_en, moduleConstants.l_in, moduleConstants.l_c1, moduleConstants.l_c2);
-
-  PIDConstants motorPIDConstants = moduleConstants.motorPIDConstants;
-  rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
-  leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
-
-  PIDConstants rotationPIDConstants = moduleConstants.rotationPIDConstants;
-  this->rotationPid = MiniPID::MiniPID(rotationPIDConstants.kP, rotationPIDConstants.kI, rotationPIDConstants.kD, rotationPIDConstants.kF);
+    this->moduleConstants = moduleConstants;
+    this->rightMotor = N20Motor(moduleConstants.r_en, moduleConstants.r_in, moduleConstants.r_c1, moduleConstants.r_c2);
+    this->leftMotor = N20Motor(moduleConstants.l_en, moduleConstants.l_in, moduleConstants.l_c1, moduleConstants.l_c2);
+  
+    PIDConstants motorPIDConstants = moduleConstants.motorPIDConstants;
+    rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
+    leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
+  
+    PIDConstants rotationPIDConstants = moduleConstants.rotationPIDConstants;
+    this->rotationPid = MiniPID(rotationPIDConstants.kP, rotationPIDConstants.kI, rotationPIDConstants.kD, rotationPIDConstants.kF);
 	this->rotationPid.setOutputLimits(-7, 7);
 }
 
@@ -25,16 +28,16 @@ float SwerveModule::getRotation() {
 // TODO: going to fastest angle reverses driving direction as well
 void SwerveModule::setTargetRotation(float target) {
     float moduleRotation = this->getRotation();
-    float target = this->calculateClosestMatchingRotation(target);
-		double velOutput = rotationPid.getOutput(moduleRotation, target);
-		velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kS;
+    float closestTarget = this->calculateClosestMatchingRotation(target);
+	double velOutput = rotationPid.getOutput(moduleRotation, closestTarget);
+	velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kS;
 
-		float rotError = abs(moduleRotation - target);
+	float rotError = abs(moduleRotation - closestTarget);
 
-		// help start moving motors
-		if (rotError > 0.01 && (rightMotor.rps < 0.01 || leftMotor.rps < 0.01)) {
-			velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kStaticFriction;
-		}
+	// help start moving motors
+	if (rotError > 0.01 && (rightMotor.rps < 0.01 || leftMotor.rps < 0.01)) {
+		velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kStaticFriction;
+	}
 
     rightMotor.setTargetVelocity(-velOutput);
     leftMotor.setTargetVelocity(-velOutput);
@@ -48,15 +51,16 @@ void SwerveModule::setTargetVelocity(float target) {
 float SwerveModule::calculateClosestMatchingRotation(float target) {
     float moduleRotation = this->getRotation();
     float whole;
-		float relativeRotation = std::modf(moduleRotation, &whole);
-		float diff =  target - relativeRotation;
-		// force difference to be between [-0.5, 0.5]
-		if (diff > 0.5) {
-			diff -= 1;
-		} else if (diff < -0.5) {
-			diff += 1;
-		}
-		float finalTarget = moduleRotation + diff;
+	float relativeRotation = std::modf(moduleRotation, &whole);
+	float diff =  target - relativeRotation;
+	// force difference to be between [-0.5, 0.5]
+	if (diff > 0.5) {
+		diff -= 1;
+	} else if (diff < -0.5) {
+		diff += 1;
+	}
+	float finalTarget = moduleRotation + diff;
+	return finalTarget;
 }
 
 void SwerveModule::resetPosition() {

@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/output.dir/src/components/n20_motor.cpp.o"
   "CMakeFiles/output.dir/src/components/n20_motor.cpp.o.d"
+  "CMakeFiles/output.dir/src/components/swerve_module.cpp.o"
+  "CMakeFiles/output.dir/src/components/swerve_module.cpp.o.d"
   "CMakeFiles/output.dir/src/components/xbox_controller.cpp.o"
   "CMakeFiles/output.dir/src/components/xbox_controller.cpp.o.d"
   "CMakeFiles/output.dir/src/main.cpp.o"

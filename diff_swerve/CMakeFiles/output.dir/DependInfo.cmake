@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/n20_motor.cpp" "CMakeFiles/output.dir/src/components/n20_motor.cpp.o" "gcc" "CMakeFiles/output.dir/src/components/n20_motor.cpp.o.d"
+  "/home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/swerve_module.cpp" "CMakeFiles/output.dir/src/components/swerve_module.cpp.o" "gcc" "CMakeFiles/output.dir/src/components/swerve_module.cpp.o.d"
   "/home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/xbox_controller.cpp" "CMakeFiles/output.dir/src/components/xbox_controller.cpp.o" "gcc" "CMakeFiles/output.dir/src/components/xbox_controller.cpp.o.d"
   "/home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/main.cpp" "CMakeFiles/output.dir/src/main.cpp.o" "gcc" "CMakeFiles/output.dir/src/main.cpp.o.d"
   "/home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/utils/logger.cpp" "CMakeFiles/output.dir/src/utils/logger.cpp.o" "gcc" "CMakeFiles/output.dir/src/utils/logger.cpp.o.d"
