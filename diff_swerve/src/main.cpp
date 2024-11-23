@@ -34,8 +34,8 @@ int main() {
 	}
 
 	SwerveModule module(SwerveModuleConstants::SwerveModuleConstants(
-		18, 23, 12, 16, // right motor pins
-		24, 25, 20, 21, // left motor pins
+		12, 16, 20, 21, // right motor pins
+		24, 25, 8, 7, // left motor pins
 		PIDConstants::PIDConstants(0.01, 0, 0, 0.075), // motor PID constants
 		PIDConstants::PIDConstants(20, 0, 0, 0, 2.5, 2.5), // rotation PID constants
 	));
@@ -66,7 +66,6 @@ int main() {
 			module.resetPosition();
 			Logger::logger() << "pressed BTN_TL" << endl;
 		}
-
 
 		// rotation control
 		float rotationTarget = 0;
