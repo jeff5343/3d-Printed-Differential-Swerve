@@ -19,6 +19,10 @@ class SwerveModuleConstants {
         : r_en(r_en), r_in(r_in), r_c1(r_c1), r_c2(r_c2),
           l_en(l_en), l_in(l_in), l_c1(l_c1), l_c2(l_c2),
           motorPIDConstants(motorPIDConstants), rotationPIDConstants(rotationPIDConstants) {};
+    SwerveModuleConstants()
+        : r_en(0), r_in(0), r_c1(0), r_c2(0),
+          l_en(0), l_in(0), l_c1(0), l_c2(0),
+          motorPIDConstants(), rotationPIDConstants() {};
 };
 
 class SwerveModule {

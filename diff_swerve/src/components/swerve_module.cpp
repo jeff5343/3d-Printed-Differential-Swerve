@@ -6,7 +6,7 @@
 
 
 SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants) {
-    this->moduleConstants = moduleConstants;
+  	this->moduleConstants = moduleConstants;
     this->rightMotor = N20Motor(moduleConstants.r_en, moduleConstants.r_in, moduleConstants.r_c1, moduleConstants.r_c2);
     this->leftMotor = N20Motor(moduleConstants.l_en, moduleConstants.l_in, moduleConstants.l_c1, moduleConstants.l_c2);
   
@@ -35,7 +35,7 @@ void SwerveModule::setTargetRotation(float target) {
 	float rotError = abs(moduleRotation - closestTarget);
 
 	// help start moving motors
-	if (rotError > 0.01 && (rightMotor.rps < 0.01 || leftMotor.rps < 0.01)) {
+	if (rotError > 0.01 && (rightMotor.getRps() < 0.01 || leftMotor.getRps() < 0.01)) {
 		velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kStaticFriction;
 	}
 
