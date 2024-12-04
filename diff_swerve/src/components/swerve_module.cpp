@@ -5,17 +5,18 @@
 #include <cmath>
 
 
-SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants) {
-  	this->moduleConstants = moduleConstants;
-    this->rightMotor = N20Motor(moduleConstants.r_en, moduleConstants.r_in, moduleConstants.r_c1, moduleConstants.r_c2);
-    this->leftMotor = N20Motor(moduleConstants.l_en, moduleConstants.l_in, moduleConstants.l_c1, moduleConstants.l_c2);
-  
+SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants) 
+	: moduleConstants(moduleConstants), 
+		rightMotor(moduleConstants.r_en, moduleConstants.r_in, moduleConstants.r_c1, moduleConstants.r_c2),
+		leftMotor(moduleConstants.l_en, moduleConstants.l_in, moduleConstants.l_c1, moduleConstants.l_c2),
+		rotationPid(moduleConstants.rotationPIDConstants.kP, 
+			moduleConstants.rotationPIDConstants.kI,
+			moduleConstants.rotationPIDConstants.kD,
+			moduleConstants.rotationPIDConstants.kF)
+{
     PIDConstants motorPIDConstants = moduleConstants.motorPIDConstants;
     rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
     leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
-  
-    PIDConstants rotationPIDConstants = moduleConstants.rotationPIDConstants;
-    this->rotationPid = MiniPID(rotationPIDConstants.kP, rotationPIDConstants.kI, rotationPIDConstants.kD, rotationPIDConstants.kF);
 	this->rotationPid.setOutputLimits(-7, 7);
 }
 

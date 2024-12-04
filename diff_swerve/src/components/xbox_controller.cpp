@@ -23,6 +23,10 @@ void XboxController::controllerThread() {
 				if (this->isConnected()) {
 					dev = this->initializeLibevdev();
 					this->ready = true;
+					this->leftY = 0;
+					this->leftX = 0;
+					this->rightY = 0;
+					this->rightX = 0;
 				}
 			}
 			continue;

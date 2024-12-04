@@ -204,9 +204,15 @@ CMakeFiles/output.dir/src/main.cpp.o: \
  /usr/include/c++/12/bits/codecvt.h \
  /usr/include/aarch64-linux-gnu/c++/12/bits/basic_file.h \
  /usr/include/aarch64-linux-gnu/c++/12/bits/c++io.h \
- /usr/include/c++/12/bits/fstream.tcc \
+ /usr/include/c++/12/bits/fstream.tcc /usr/include/c++/12/list \
+ /usr/include/c++/12/bits/stl_list.h \
+ /usr/include/c++/12/bits/allocated_ptr.h \
+ /usr/include/c++/12/ext/aligned_buffer.h \
+ /usr/include/c++/12/bits/list.tcc \
  /home/pi/3d-Printed-Differential-Swerve/diff_swerve/libs/MiniPID.h \
  /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/n20_motor.h \
  /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/utils/logger.h \
  /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/xbox_controller.h \
+ /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/swerve_module.h \
+ /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/components/n20_motor.h \
  /home/pi/3d-Printed-Differential-Swerve/diff_swerve/src/utils/util.h

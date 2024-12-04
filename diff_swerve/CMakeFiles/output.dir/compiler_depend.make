@@ -934,10 +934,17 @@ CMakeFiles/output.dir/src/main.cpp.o: src/main.cpp \
   /usr/include/aarch64-linux-gnu/c++/12/bits/basic_file.h \
   /usr/include/aarch64-linux-gnu/c++/12/bits/c++io.h \
   /usr/include/c++/12/bits/fstream.tcc \
+  /usr/include/c++/12/list \
+  /usr/include/c++/12/bits/stl_list.h \
+  /usr/include/c++/12/bits/allocated_ptr.h \
+  /usr/include/c++/12/ext/aligned_buffer.h \
+  /usr/include/c++/12/bits/list.tcc \
   libs/MiniPID.h \
   src/components/n20_motor.h \
   src/utils/logger.h \
   src/components/xbox_controller.h \
+  src/components/swerve_module.h \
+  src/components/n20_motor.h \
   src/utils/util.h
 
 CMakeFiles/output.dir/src/utils/logger.cpp.o: src/utils/logger.cpp \
@@ -1203,6 +1210,12 @@ src/utils/util.cpp:
 
 src/utils/logger.cpp:
 
+/usr/include/c++/12/bits/list.tcc:
+
+/usr/include/c++/12/bits/stl_list.h:
+
+/usr/include/c++/12/list:
+
 /usr/include/linux/close_range.h:
 
 /usr/include/aarch64-linux-gnu/bits/unistd_ext.h:
@@ -1326,6 +1339,8 @@ src/components/xbox_controller.cpp:
 /usr/include/ctype.h:
 
 /usr/include/c++/12/bits/stl_algobase.h:
+
+/usr/include/c++/12/ext/aligned_buffer.h:
 
 /usr/include/features-time64.h:
 
@@ -1514,6 +1529,8 @@ src/utils/util.h:
 /usr/include/c++/12/bits/basic_string.tcc:
 
 /usr/include/aarch64-linux-gnu/bits/typesizes.h:
+
+/usr/include/c++/12/bits/allocated_ptr.h:
 
 /usr/include/aarch64-linux-gnu/bits/confname.h:
 

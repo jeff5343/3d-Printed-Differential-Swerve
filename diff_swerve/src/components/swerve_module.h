@@ -30,11 +30,12 @@ class SwerveModule {
     static constexpr float MODULE_ROTATION_PER_MOTOR_ROTATION = (17.0 / 60.0) / 2.0;
 
     SwerveModuleConstants moduleConstants;
-    N20Motor rightMotor, leftMotor;
     MiniPID rotationPid;
 
     float calculateClosestMatchingRotation(float target);
   public:
+    N20Motor rightMotor, leftMotor;
+
     SwerveModule(SwerveModuleConstants moduleConstants);
     float getRotation();
     void setTargetRotation(float target);
