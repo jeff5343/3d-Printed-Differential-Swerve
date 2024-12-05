@@ -14,6 +14,7 @@ class N20Motor {
 		int en;
 		int in, c1, c2;
 		// data
+		volatile float kS, kStaticFriction;
 		volatile int ticks;
 		volatile int levC1, levC2;
 		volatile int lastLevGPIO;

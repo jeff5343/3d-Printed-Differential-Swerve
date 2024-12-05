@@ -38,20 +38,20 @@ int main() {
 	SwerveModule frontModule(SwerveModuleConstants(
 		14, 23, 15, 18, // right motor pins
 		2, 17, 3, 4, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075), // motor PID constants
-		PIDConstants(20, 0, 0, 0, 2.5, 2.5) // rotation PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
+		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
 	));
 	SwerveModule rightModule(SwerveModuleConstants(
 		12, 16, 20, 21, // right motor pins
 		24, 25, 8, 7, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075), // motor PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
 		PIDConstants(5, 0, 0, 0, 0, 0) // rotation PID constants
 	));
 	SwerveModule leftModule(SwerveModuleConstants(
 		10, 5, 9, 11, // right motor pins
 		6, 13, 19, 26, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075), // motor PID constants
-		PIDConstants(20, 0, 0, 0, 2.5, 2.5) // rotation PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
+		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
 	));
 
 	SwerveModule* modules[3] = {&frontModule, &rightModule, &leftModule};
@@ -104,10 +104,12 @@ int main() {
 		}
 
 		Logger::logger() << "rot target:" << rotationTarget << endl;
-		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 7.5;
+		// float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 7.5;
+		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 100;
 		for (auto module : modules) {
-				module->setTargetVelocity(targetVel);
-				Logger::logger() << "DRIVIGN!" << targetVel << endl;
+			module->rightMotor.setPercentOut(targetVel);
+			module->leftMotor.setPercentOut(targetVel);
+			Logger::logger() << "DRIVIGN!" << targetVel << endl;
 
 			//float rotError = module->getErrorToTargetRotation(rotationTarget);
 			//if (abs(rotError) > 0.01 && rotationTarget != 0) {

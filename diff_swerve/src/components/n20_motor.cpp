@@ -86,7 +86,7 @@ N20Motor::N20Motor(int en, int in, int c1, int c2) : pid(MiniPID(0, 0, 0)) {
 	updateVelocityThread.detach();
 }
 
-void N20Motor::setPIDF(float kP, float kI, float kD, float kF) {
+void N20Motor::setPIDF(float kP, float kI, float kD, float kF, float kS, float kStaticFriction) {
 	pid.setP(kP);
 	pid.setI(kI);
 	pid.setD(kD);
@@ -100,5 +100,10 @@ void N20Motor::setPercentOut(float percentOut) {
 
 void N20Motor::setTargetVelocity(float targetRps) {
 	double output = pid.getOutput(rps, targetRps);
+	double sign = copysign(1.0, output); 
+	output += sign * this->kS;
+	if (abs(this->getRps()) < 0.00001) {
+		output += sign * this->kStaticFriction;
+	}
 	setPercentOut(output);
 }
