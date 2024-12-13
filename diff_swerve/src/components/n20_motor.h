@@ -14,7 +14,7 @@ class N20Motor {
 		int en;
 		int in, c1, c2;
 		// data
-		volatile float kS, kStaticFriction;
+		volatile float kKineticFriction, kStaticFriction;
 		volatile int ticks;
 		volatile int levC1, levC2;
 		volatile int lastLevGPIO;
@@ -26,7 +26,7 @@ class N20Motor {
 		// functions
 		N20Motor(int en, int in, int c1, int c2);
 		N20Motor() : en(0), in(0), c1(0), c2(0) {};
-		void setPIDF(float kP, float kI, float kD, float kF, float kS, float kStaticFriction);
+		void setPIDF(float kP, float kI, float kD, float kF, float kKineticFriction, float kStaticFriction);
 		void setPercentOut(float percentOut);
 		void setTargetVelocity(float targetRps);
 		void updateVelocityThread();

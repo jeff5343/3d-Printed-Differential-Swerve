@@ -15,8 +15,8 @@ SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants)
 			moduleConstants.rotationPIDConstants.kF)
 {
     PIDConstants motorPIDConstants = moduleConstants.motorPIDConstants;
-    rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kS, motorPIDConstants.kStaticFriction);
-    leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kS, motorPIDConstants.kStaticFriction);
+    rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kKineticFriction, motorPIDConstants.kStaticFriction);
+    leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kKineticFriction, motorPIDConstants.kStaticFriction);
 	this->rotationPid.setOutputLimits(-7, 7);
 }
 
@@ -31,13 +31,14 @@ void SwerveModule::setTargetRotation(float target) {
     float moduleRotation = this->getRotation();
     float closestTarget = this->calculateClosestMatchingRotation(target);
 	double velOutput = rotationPid.getOutput(moduleRotation, closestTarget);
-	velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kS;
 
 	float rotError = abs(moduleRotation - closestTarget);
 
 	// help start moving motors
 	if (rotError > 0.01 && (rightMotor.getRps() < 0.01 || leftMotor.getRps() < 0.01)) {
 		velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kStaticFriction;
+	} else {
+		velOutput += copysign(1.0, velOutput) * this->moduleConstants.rotationPIDConstants.kKineticFriction;
 	}
 
     rightMotor.setTargetVelocity(-velOutput);
