@@ -38,7 +38,7 @@ int main() {
 	SwerveModule frontModule(SwerveModuleConstants(
 		14, 23, 15, 18, // right motor pins
 		2, 17, 3, 4, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0, 0.28), // motor PID constants
 		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
 	));
 	SwerveModule rightModule(SwerveModuleConstants(
@@ -54,8 +54,8 @@ int main() {
 		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
 	));
 
-	SwerveModule* modules[3] = {&frontModule, &rightModule, &leftModule};
-	// SwerveModule* modules[1] = {&frontModule};
+	// SwerveModule* modules[3] = {&frontModule, &rightModule, &leftModule};
+	SwerveModule* modules[1] = {&frontModule};
 
 	// controller
 	XboxController controller(std::string("event2"));
@@ -105,7 +105,7 @@ int main() {
 
 		Logger::logger() << "rot target:" << rotationTarget << endl;
 		// float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 7.5;
-		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 100;
+		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 1;
 		for (auto module : modules) {
 			module->rightMotor.setPercentOut(targetVel);
 			module->leftMotor.setPercentOut(targetVel);

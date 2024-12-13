@@ -15,8 +15,8 @@ SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants)
 			moduleConstants.rotationPIDConstants.kF)
 {
     PIDConstants motorPIDConstants = moduleConstants.motorPIDConstants;
-    rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
-    leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF);
+    rightMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kS, motorPIDConstants.kStaticFriction);
+    leftMotor.setPIDF(motorPIDConstants.kP, motorPIDConstants.kI, motorPIDConstants.kD, motorPIDConstants.kF, motorPIDConstants.kS, motorPIDConstants.kStaticFriction);
 	this->rotationPid.setOutputLimits(-7, 7);
 }
 
