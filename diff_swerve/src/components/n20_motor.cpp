@@ -2,6 +2,7 @@
 #include <math.h>
 #include <pigpio.h>
 #include <thread>
+#include <algorithm>
 
 #include "MiniPID.h"
 #include "n20_motor.h"
@@ -91,11 +92,15 @@ void N20Motor::setPIDF(float kP, float kI, float kD, float kF, float kKineticFri
 	pid.setI(kI);
 	pid.setD(kD);
 	pid.setF(kF);
+	this->kKineticFriction = kKineticFriction;
+	this->kStaticFriction = kStaticFriction;
 }
 
 void N20Motor::setPercentOut(float percentOut) {
-	gpioWrite(in, percentOut >= 0);
-	gpioPWM(en, (int) Util::mapIntoRange(fabs(percentOut), 0, 1, 0, 255)); 
+	double clamped = std::clamp(percentOut, -1.0f, 1.0f);
+	gpioWrite(in, clamped >= 0);
+	gpioPWM(en, (int) Util::mapIntoRange(fabs(clamped), 0, 1, 0, 255)); 
+	Logger::logger() << clamped << std::endl;
 }
 
 void N20Motor::setTargetVelocity(float targetRps) {

@@ -38,24 +38,24 @@ int main() {
 	SwerveModule frontModule(SwerveModuleConstants(
 		14, 23, 15, 18, // right motor pins
 		2, 17, 3, 4, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075, 0, 0.28), // motor PID constants
-		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
+		PIDConstants(10, 0, 0, 0, 5, 5) // rotation PID constants
 	));
 	SwerveModule rightModule(SwerveModuleConstants(
 		12, 16, 20, 21, // right motor pins
 		24, 25, 8, 7, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
-		PIDConstants(5, 0, 0, 0, 0, 0) // rotation PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
+		PIDConstants(5, 0, 0, 0, 5, 5) // rotation PID constants
 	));
 	SwerveModule leftModule(SwerveModuleConstants(
 		10, 5, 9, 11, // right motor pins
 		6, 13, 19, 26, // left motor pins
-		PIDConstants(0.01, 0, 0, 0.075, 0, 0), // motor PID constants
-		PIDConstants(20, 0, 0, 0, 0, 0) // rotation PID constants
+		PIDConstants(0.01, 0, 0, 0.075, 0.21, 0.28), // motor PID constants
+		PIDConstants(20, 0, 0, 0, 6, 16) // rotation PID constants
 	));
 
-	// SwerveModule* modules[3] = {&frontModule, &rightModule, &leftModule};
-	SwerveModule* modules[1] = {&frontModule};
+	SwerveModule* modules[3] = {&frontModule, &rightModule, &leftModule};
+	// SwerveModule* modules[1] = {&leftModule};
 
 	// controller
 	XboxController controller(std::string("event2"));
@@ -81,7 +81,6 @@ int main() {
 
 		// input
 		float leftY = controller.getLeftY(), leftX = controller.getLeftX();
-		Logger::logger() << leftY << " " << leftX;
 
 		// reset position
 		if (controller.getButtonPressed() == BTN_TL) {
@@ -103,22 +102,33 @@ int main() {
 			rotationTarget = 0;
 		}
 
-		Logger::logger() << "rot target:" << rotationTarget << endl;
-		// float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 7.5;
-		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 1;
-		for (auto module : modules) {
-			module->rightMotor.setPercentOut(targetVel);
-			module->leftMotor.setPercentOut(targetVel);
-			Logger::logger() << "DRIVIGN!" << targetVel << endl;
+		float targetVel = (sqrt(pow(leftX, 2) + pow(leftY, 2))) * 7.5;
+		bool modulesReachedTarget = true;
 
-			//float rotError = module->getErrorToTargetRotation(rotationTarget);
-			//if (abs(rotError) > 0.01 && rotationTarget != 0) {
-			//	module->setTargetRotation(rotationTarget);
-			//	Logger::logger() << "ROTATING!" << rotationTarget << endl;
-			//} else {
-			//	module->setTargetVelocity(targetVel);
-			//	Logger::logger() << "DRIVIGN!" << targetVel << endl;
-			//}
+		float MAX_ROT_ERR = 0.01;
+
+		for (auto module: modules) {
+			float rotError = module->getErrorToTargetRotation(rotationTarget);
+			if (abs(rotError) > MAX_ROT_ERR && rotationTarget != 0) {
+				modulesReachedTarget = false;
+				break;
+			}
+		}
+
+		for (auto module : modules) {
+			float rotError = module->getErrorToTargetRotation(rotationTarget);
+			if (abs(rotError) > MAX_ROT_ERR && rotationTarget != 0) {
+				module->setTargetRotation(rotationTarget);
+				Logger::logger() << "ROTATING!" << rotationTarget << endl;
+			} 
+			else if (modulesReachedTarget && abs(targetVel) > 1) {
+				module->setTargetVelocity(targetVel);
+				Logger::logger() << "DRIVIGN!" << targetVel << endl;
+			} 
+			else {
+				module->setPercentOut(0);
+				Logger::logger() << "STOPPING!" << targetVel << endl;
+			}
 			
 			// TELEMETRY
 			rpsLValues.push_back(module->leftMotor.getRps());		
@@ -148,6 +158,8 @@ int main() {
 			Logger::logger() << "rps target:" << targetVel << endl;
 
 			// rotation control
+			Logger::logger() << "rot target:" << rotationTarget << endl;
+			Logger::logger() << "rot err:" << rotError << endl;
 			// Logger::logger() << "rot L :" << module->leftMotor.getRotations() << endl;
 			// Logger::logger() << "rot R :" << module->rightMotor.getRotations() << endl;
 			// Logger::logger() << "rot:" << module->getRotation() << endl;

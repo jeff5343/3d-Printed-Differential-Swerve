@@ -50,6 +50,11 @@ void SwerveModule::setTargetVelocity(float target) {
   leftMotor.setTargetVelocity(target);
 }
 
+void SwerveModule::setPercentOut(float percentOut) {
+  rightMotor.setPercentOut(-percentOut);
+  leftMotor.setPercentOut(percentOut);
+}
+
 float SwerveModule::calculateClosestMatchingRotation(float target) {
     float moduleRotation = this->getRotation();
     float whole;

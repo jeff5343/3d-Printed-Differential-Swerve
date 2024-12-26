@@ -40,6 +40,7 @@ class SwerveModule {
     float getRotation();
     void setTargetRotation(float target);
     void setTargetVelocity(float target);
+    void setPercentOut(float percentOut);
     void resetPosition();
     float getErrorToTargetRotation(float target);
     void stop();
