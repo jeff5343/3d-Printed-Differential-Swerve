@@ -1,6 +1,6 @@
 # 3d Printed Differential Swerve
 
-My goal is to create a small swerve bot from scratch. After many failed attempts I found [WildWilly's design](https://www.printables.com/model/300105-differential-swerve-drive). So I used his designt to draw a smaller, jankier version <br>
+My goal is to create a small swerve bot from scratch. After many failed attempts I found [WildWilly's design](https://www.printables.com/model/300105-differential-swerve-drive). So I used his design to draw a smaller version <br>
 
 CAD:
 
