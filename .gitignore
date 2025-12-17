@@ -1,0 +1,12 @@
+# CMake/Build System Files
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# Compiled Artifacts
+*.a
+*.so
+*.o
+libminipid.a
+output*
