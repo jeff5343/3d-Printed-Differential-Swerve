@@ -1,4 +1,4 @@
-# 3D Printed Differential Swerve
+# 3D-Printed Differential Swerve
 A compact differential swerve drive system.
 
 ## Project Overview
