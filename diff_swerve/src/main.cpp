@@ -1,95 +1,89 @@
+#include <chrono>
 #include <cmath>
 #include <deque>
 #include <fcntl.h>
-#include <fstream>
 #include <iostream>
 #include <libevdev-1.0/libevdev/libevdev.h>
 #include <math.h>
-#include <memory>
 #include <pigpio.h>
-#include <string.h>
+#include <thread>
 #include <unistd.h>
 
-#include "MiniPID.h"
-#include "logger.h"
-#include "n20_motor.h"
-#include "swerve_module.h"
-#include "util.h"
-#include "xbox_controller.h"
+#include "components/n20_motor.h"
+#include "components/swerve_module.h"
+#include "components/xbox_controller.h"
+#include "utils/logger.h"
+#include "utils/util.h"
 
-int main() {
-  Logger::setup();
-  Logger::logger() << "<Program starting...>" << std::endl;
-
-  // set sample rate of 2 us
-  gpioCfgClock(2, 0, -1);
-  gpioCfgClock(2, 1, -1);
-  if (gpioInitialise() < 0) {
-    Logger::logger() << "pigpio failed to initialize";
-    return -1;
-  }
-
+void run() {
   // initalize swerve modules
-  std::unique_ptr<SwerveModule> frontModule =
-      std::make_unique<SwerveModule>(SwerveModuleConstants(
-          14, 23, 15, 18,                              // right motor pins
-          2, 17, 3, 4,                                 // left motor pins
-          PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
-          PIDConstants(10, 0, 0, 0, 5, 5)              // rotation PID constants
-          ));
-  std::unique_ptr<SwerveModule> rightModule =
-    	std::make_unique<SwerveModule>(SwerveModuleConstants(
-          12, 16, 20, 21,                              // right motor pins
-          24, 25, 8, 7,                                // left motor pins
-          PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
-          PIDConstants(5, 0, 0, 0, 5, 5)               // rotation PID constants
-          ));
-  std::unique_ptr<SwerveModule> leftModule =
-      std::make_unique<SwerveModule>(SwerveModuleConstants(
-          10, 5, 9, 11,                                // right motor pins
-          6, 13, 19, 26,                               // left motor pins
-          PIDConstants(0.01, 0, 0, 0.075, 0.21, 0.28), // motor PID constants
-          PIDConstants(20, 0, 0, 0, 6, 16)             // rotation PID constants
-          ));
-
-  std::vector<std::unique_ptr<SwerveModule>> modules;
-  modules.push_back(std::move(frontModule));
-  modules.push_back(std::move(rightModule));
-  modules.push_back(std::move(leftModule));
+  SwerveModule frontModule(SwerveModuleConstants(
+      14, 23, 15, 18,                              // right motor pins
+      2, 17, 3, 4,                                 // left motor pins
+      PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
+      PIDConstants(10, 0, 0, 0, 5, 5)              // rotation PID constants
+      ));
+  SwerveModule rightModule(SwerveModuleConstants(
+      12, 16, 20, 21,                              // right motor pins
+      24, 25, 8, 7,                                // left motor pins
+      PIDConstants(0.01, 0, 0, 0.075, 0.16, 0.25), // motor PID constants
+      PIDConstants(5, 0, 0, 0, 5, 5)               // rotation PID constants
+      ));
+  SwerveModule leftModule(SwerveModuleConstants(
+      10, 5, 9, 11,                                // right motor pins
+      6, 13, 19, 26,                               // left motor pins
+      PIDConstants(0.01, 0, 0, 0.075, 0.21, 0.28), // motor PID constants
+      PIDConstants(20, 0, 0, 0, 6, 16)             // rotation PID constants
+      ));
+  std::vector<SwerveModule *> modules = {&frontModule, &rightModule,
+                                         &leftModule};
 
   // controller
-  XboxController controller(std::string("event2"));
-  float inputRight = 0, inputLeft = 0;
-  bool wasReady = false;
+  XboxController controller{"event2"};
+  float inputRight = 0;
+  float inputLeft = 0;
+  bool xboxConnected = false;
 
   // telemetry
   std::deque<float> rpsLValues{};
   std::deque<float> rpsRValues{};
 
+  std::chrono::time_point<std::chrono::steady_clock> timePoint =
+      std::chrono::steady_clock::now();
+
   while (true) {
     // wait for xbox connection
-    bool isReady = controller.isReady();
-    if (!isReady) {
+    if (!controller.isReady()) {
       Logger::logger() << "waiting for xbox controller connection..."
                        << std::endl;
-      gpioSleep(PI_TIME_RELATIVE, 1, 0);
+      for (SwerveModule *module : modules) {
+        module->stop();
+      }
+      xboxConnected = false;
+      timePoint += std::chrono::milliseconds(1000);
+      std::this_thread::sleep_until(timePoint);
       continue;
     }
-    if (!wasReady && isReady) {
+    if (!xboxConnected) {
       Logger::logger() << "xbox controller is connected" << std::endl;
+      xboxConnected = true;
     }
-    wasReady = isReady;
 
-    // input
-    float leftY = controller.getLeftY(), leftX = controller.getLeftX();
+    // exit program
+    if (controller.getButtonPressed() == BTN_START)
+      break;
 
     // reset position
     if (controller.getButtonPressed() == BTN_TL) {
-      for (auto &module : modules) {
+      for (SwerveModule *module : modules) {
         module->resetPosition();
       }
       Logger::logger() << "pressed BTN_TL" << std::endl;
     }
+
+    // input
+    float leftY = controller.getLeftY();
+    float leftX = controller.getLeftX();
 
     // rotation control
     float rotationTarget = 0;
@@ -109,7 +103,7 @@ int main() {
 
     float MAX_ROT_ERR = 0.01;
 
-    for (auto &module : modules) {
+    for (SwerveModule *module : modules) {
       float rotError = module->getErrorToTargetRotation(rotationTarget);
       if (abs(rotError) > MAX_ROT_ERR && rotationTarget != 0) {
         modulesReachedTarget = false;
@@ -117,7 +111,7 @@ int main() {
       }
     }
 
-    for (auto &module : modules) {
+    for (SwerveModule *module : modules) {
       float rotError = module->getErrorToTargetRotation(rotationTarget);
       if (abs(rotError) > MAX_ROT_ERR && rotationTarget != 0) {
         module->setTargetRotation(rotationTarget);
@@ -188,18 +182,29 @@ int main() {
 
     Logger::logger() << "-------------------" << std::endl;
 
-    // TODO: subtract how long system took in the body of the for loop?
-    gpioDelay(20000);
-
-    // exit program
-    if (controller.getButtonPressed() == BTN_START) {
-      break;
-    }
+    timePoint += std::chrono::milliseconds(20);
+    std::this_thread::sleep_until(timePoint);
   }
 
-  for (auto &module : modules) {
+  // terminate
+  for (SwerveModule *module : modules) {
     module->stop();
   }
+}
+
+int main() {
+  Logger::setup();
+  Logger::logger() << "<Program starting...>" << std::endl;
+
+  // set sample rate of 2 us
+  gpioCfgClock(2, 0, -1);
+  gpioCfgClock(2, 1, -1);
+  if (gpioInitialise() < 0) {
+    Logger::logger() << "pigpio failed to initialize";
+    return -1;
+  }
+
+  run();
 
   gpioTerminate();
 }

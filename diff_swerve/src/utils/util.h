@@ -1,9 +1,10 @@
-#ifndef UTIL_
-#define UTIL_
+#pragma once
+
+#include <cstdint>
 
 class Util {
 public:
-  static long int micros();
+  static std::int64_t micros();
   static float mapIntoRange(float x, float inputStart, float inputEnd,
                             float outputStart, float outputEnd);
 };
@@ -22,5 +23,3 @@ public:
   PIDConstants()
       : kP(0), kI(0), kD(0), kF(0), kKineticFriction(0), kStaticFriction(0) {};
 };
-
-#endif

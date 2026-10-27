@@ -1,12 +1,12 @@
-#include <chrono>
 #include <pigpio.h>
+#include <cstdint>
 
 #include "util.h"
 
-long int Util::micros() {
+std::int64_t Util::micros() {
   int secs, us;
   gpioTime(PI_TIME_RELATIVE, &secs, &us);
-  return (secs * 1000000) + us;
+  return static_cast<int64_t>(secs) * 1000000 + us;
 }
 
 float Util::mapIntoRange(float input, float inputStart, float inputEnd,

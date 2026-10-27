@@ -1,36 +1,11 @@
-#ifndef SWERVE_MODULE_
-#define SWERVE_MODULE_
+#pragma once
 
 #include "MiniPID.h"
 
-#include "n20_motor.h"
-#include "util.h"
+#include "components/n20_motor.h"
+#include "utils/util.h"
 
-class SwerveModule {
-private:
-  static constexpr float MODULE_ROTATION_PER_MOTOR_ROTATION =
-      (17.0 / 60.0) / 2.0;
-
-  SwerveModuleConstants moduleConstants;
-  MiniPID rotationPid;
-
-  float calculateClosestMatchingRotation(float target);
-
-public:
-  N20Motor rightMotor, leftMotor;
-
-  SwerveModule(SwerveModuleConstants moduleConstants);
-  float getRotation();
-  void setTargetRotation(float target);
-  void setTargetVelocity(float target);
-  void setPercentOut(float percentOut);
-  void resetPosition();
-  float getErrorToTargetRotation(float target);
-  void stop();
-};
-
-class SwerveModuleConstants {
-public:
+struct SwerveModuleConstants {
   int r_en, r_in, r_c1, r_c2;
   int l_en, l_in, l_c1, l_c2;
   PIDConstants motorPIDConstants;
@@ -47,4 +22,25 @@ public:
         motorPIDConstants(), rotationPIDConstants() {};
 };
 
-#endif
+class SwerveModule {
+public:
+  SwerveModule(SwerveModuleConstants moduleConstants);
+  float getRotation() const;
+  float getErrorToTargetRotation(float target) const;
+  void setTargetRotation(float target);
+  void setTargetVelocity(float target);
+  void setPercentOut(float percentOut);
+  void resetPosition();
+  void stop();
+
+  N20Motor rightMotor, leftMotor;
+
+private:
+  static constexpr float MODULE_ROTATION_PER_MOTOR_ROTATION =
+      (17.0 / 60.0) / 2.0;
+
+  const SwerveModuleConstants moduleConstants;
+  MiniPID rotationPid;
+
+  float calculateClosestMatchingRotation(float target) const;
+};

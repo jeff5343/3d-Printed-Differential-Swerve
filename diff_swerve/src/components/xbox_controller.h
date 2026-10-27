@@ -1,36 +1,46 @@
-#ifndef XBOX_CONTROLLER_
-#define XBOX_CONTROLLER_
+#pragma once
 
+#include <atomic>
+#include <condition_variable>
+#include <libevdev-1.0/libevdev/libevdev.h>
+#include <mutex>
 #include <string>
 #include <thread>
-#include <atomic>
 
 class XboxController {
-
 public:
   XboxController(std::string eventName);
   ~XboxController();
-  libevdev *initializeLibevdev();
-  bool isConnected();
-  bool isReady() { return ready; };
-  float getLeftY() { return leftY; };
-  float getLeftX() { return leftX; };
-  float getRightY() { return rightY; };
-  float getRightX() { return rightX; };
-  int getButtonPressed() { return buttonPressed; };
+  bool isReady() const { return ready; };
+  float getLeftY() const { return leftY; };
+  float getLeftX() const { return leftX; };
+  float getRightY() const { return rightY; };
+  float getRightX() const { return rightX; };
+  int getButtonPressed() const { return buttonPressed; };
 
 private:
-  std::string eventName;
-  bool ready;
+  const int UPDATE_HZ = 50;
 
-  // thread
-  std::atomic<bool> running;
+  bool isConnected() const;
+  bool initializeLibevdev();
+  void cleanupLibevdev();
+  void processEvent(const input_event &ev);
+
+  std::string eventName;
+  std::atomic<bool> ready{false};
+
+  // controller thread
   std::thread controllerThread;
-  void controllerThreadCall();
+  void controllerTask();
+  mutable std::mutex runningMtx{};
+  std::condition_variable cv{};
+  bool running{false};
 
   // data
-  std::atomic<float> leftY, leftX, rightY, rightX;
-  std::atomic<int> buttonPressed;
-};
+  std::atomic<float> leftY{0.0f}, leftX{0.0f}, rightY{0.0f}, rightX{0.0f};
+  std::atomic<int> buttonPressed{-1};
 
-#endif
+  // libevdev
+  mutable std::mutex devMtx{};
+  libevdev *dev{nullptr};
+};

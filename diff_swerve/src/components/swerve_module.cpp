@@ -25,7 +25,7 @@ SwerveModule::SwerveModule(SwerveModuleConstants moduleConstants)
   this->rotationPid.setOutputLimits(-7, 7);
 }
 
-float SwerveModule::getRotation() {
+float SwerveModule::getRotation() const {
   float rightMotorModuleRotations =
       this->rightMotor.getRotations() *
       SwerveModule::MODULE_ROTATION_PER_MOTOR_ROTATION;
@@ -35,7 +35,6 @@ float SwerveModule::getRotation() {
   return rightMotorModuleRotations + leftMotorModuleRotations;
 }
 
-// TODO: going to fastest angle reverses driving direction as well
 void SwerveModule::setTargetRotation(float target) {
   float moduleRotation = this->getRotation();
   float closestTarget = this->calculateClosestMatchingRotation(target);
@@ -44,8 +43,8 @@ void SwerveModule::setTargetRotation(float target) {
   float rotError = abs(moduleRotation - closestTarget);
 
   // help start moving motors
-  if (rotError > 0.01 &&
-      (rightMotor.getRps() < 0.01 || leftMotor.getRps() < 0.01)) {
+  if (rotError > 0.01 && (std::fabs(rightMotor.getRps()) < 0.01 ||
+                          std::fabs(leftMotor.getRps()) < 0.01)) {
     velOutput += copysign(1.0, velOutput) *
                  this->moduleConstants.rotationPIDConstants.kStaticFriction;
   } else {
@@ -67,20 +66,11 @@ void SwerveModule::setPercentOut(float percentOut) {
   leftMotor.setPercentOut(percentOut);
 }
 
-float SwerveModule::calculateClosestMatchingRotation(float target) {
-  float moduleRotation = this->getRotation();
-	// split rotation into whole number and decimal
-  float whole;
-  float relativeRotation = std::modf(moduleRotation, &whole);
-  float diff = target - relativeRotation;
-  // force difference to be between [-0.5, 0.5]
-  if (diff > 0.5) {
-    diff -= 1;
-  } else if (diff < -0.5) {
-    diff += 1;
-  }
-  float finalTarget = moduleRotation + diff;
-  return finalTarget;
+float SwerveModule::calculateClosestMatchingRotation(float target) const {
+  float current = getRotation();
+  float diff = target - current;
+  diff -= std::floor(diff + 0.5);
+  return current + diff;
 }
 
 void SwerveModule::resetPosition() {
@@ -88,7 +78,7 @@ void SwerveModule::resetPosition() {
   this->leftMotor.setRotations(0);
 }
 
-float SwerveModule::getErrorToTargetRotation(float target) {
+float SwerveModule::getErrorToTargetRotation(float target) const {
   return this->getRotation() - this->calculateClosestMatchingRotation(target);
 }
 

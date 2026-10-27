@@ -1,5 +1,4 @@
-#ifndef LOGGER_
-#define LOGGER_
+#pragma once
 
 #include <iostream>
 #include <string.h>
@@ -13,5 +12,3 @@ public:
   static std::ostream &logger();
   static std::ostream &plotter();
 };
-
-#endif
