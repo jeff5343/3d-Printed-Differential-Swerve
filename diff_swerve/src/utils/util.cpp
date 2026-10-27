@@ -1,5 +1,4 @@
 #include <pigpio.h>
-#include <cstdint>
 
 #include "util.h"
 
